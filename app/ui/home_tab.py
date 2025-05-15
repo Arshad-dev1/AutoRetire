@@ -22,12 +22,17 @@ def create_home_tab(notebook):
     form_frame = ttk.LabelFrame(frame, text="")
     form_frame.pack(fill=tk.X, padx=10, pady=10)
 
+    # --- Store form variables for sharing ---
+    frame.jira_var = tk.StringVar()
+    frame.report_name_var = tk.StringVar()
+    frame.author_email_var = tk.StringVar()
+
     tk.Label(form_frame, text="JIRA #:").grid(row=0, column=0, sticky=tk.W, padx=5, pady=2)
-    tk.Entry(form_frame, width=15).grid(row=0, column=1, padx=5, pady=2)
+    tk.Entry(form_frame, width=15, textvariable=frame.jira_var).grid(row=0, column=1, padx=5, pady=2)
     tk.Label(form_frame, text="Report Name:").grid(row=0, column=2, sticky=tk.W, padx=5, pady=2)
-    tk.Entry(form_frame, width=15).grid(row=0, column=3, padx=5, pady=2)
+    tk.Entry(form_frame, width=30, textvariable=frame.report_name_var).grid(row=0, column=3, padx=5, pady=2)
     tk.Label(form_frame, text="Author Email:").grid(row=0, column=4, sticky=tk.W, padx=5, pady=2)
-    tk.Entry(form_frame, width=25).grid(row=0, column=5, padx=5, pady=2)
+    tk.Entry(form_frame, width=25, textvariable=frame.author_email_var).grid(row=0, column=5, padx=5, pady=2)
 
     # Impacted Objects Section (Scrollable)
     impacted_frame = ttk.LabelFrame(frame, text="Impacted Objects")
@@ -56,7 +61,8 @@ def create_home_tab(notebook):
     rows_frame = tk.Frame(rows_container)
     rows_frame.pack(fill=tk.X, padx=5, pady=2)
 
-    row_widgets = []
+    # Attach row_widgets to the frame
+    frame.row_widgets = []
 
     def on_object_type_change(var, idx, mode, row, cb):
         value = row["object_type"].get()
@@ -68,7 +74,7 @@ def create_home_tab(notebook):
 
     def add_row(object_type="", object_name="", server_path=""):
         row = {}
-        row_idx = len(row_widgets)
+        row_idx = len(frame.row_widgets)
         row["selected"] = tk.BooleanVar()
         cb = tk.Checkbutton(rows_frame, variable=row["selected"])
         cb.grid(row=row_idx, column=0, padx=2, pady=2)
@@ -81,12 +87,10 @@ def create_home_tab(notebook):
         row["server_path"] = tk.Entry(rows_frame, width=38)
         row["server_path"].insert(0, server_path)
         row["server_path"].grid(row=row_idx, column=3, padx=2, pady=2)
-        # Trace combobox changes to enable/disable checkbox
         row["object_type"].bind("<<ComboboxSelected>>", lambda e, r=row, c=cb: on_object_type_change(None, None, None, r, c))
-        # Initial state
         if object_type in ("SSRS", "SSIS"):
             cb.config(state="disabled")
-        row_widgets.append(row)
+        frame.row_widgets.append(row)
 
     # Add initial 1 empty row
     for _ in range(1):
@@ -98,7 +102,7 @@ def create_home_tab(notebook):
     def fill_impacted_objects():
         for widget in rows_frame.winfo_children():
             widget.destroy()
-        row_widgets.clear()
+        frame.row_widgets.clear()
         sample_data = [
             ("Job", "JobA", "/server/jobA"),
             ("Table", "TableB", "/server/tableB"),
@@ -130,9 +134,11 @@ def create_home_tab(notebook):
             ("3", "/path/to/generated_script3.sql"),
         ]
         update_scripts_table(new_script_data)
+        # Store the script paths on the frame for access in main_window
+        frame.generated_script_paths = [file_path for _, file_path in new_script_data]
 
     generate_btn = tk.Button(frame, text="Generate Scripts", command=generate_scripts)
-    generate_btn.pack(fill=tk.X, padx=10, pady=(15, 0))
+    generate_btn.pack(padx=10, pady=5)
 
     # Generated Scripts Section (Scrollable)
     scripts_frame = ttk.LabelFrame(frame, text="Generated Scripts")
@@ -142,22 +148,11 @@ def create_home_tab(notebook):
     scripts_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
     scripts_scrollbar = ttk.Scrollbar(scripts_frame, orient="vertical", command=scripts_canvas.yview)
     scripts_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-    scripts_canvas.configure(yscrollcommand=scripts_scrollbar.set)
-    scripts_canvas.bind('<Configure>', lambda e: scripts_canvas.configure(scrollregion=scripts_canvas.bbox("all")))
 
+    # Define script_links_frame within the function scope
     script_links_frame = tk.Frame(scripts_canvas)
     scripts_canvas.create_window((0, 0), window=script_links_frame, anchor="nw")
+    print(f"Script links frame: {script_links_frame.__getattribute__}")  # Debugging line
 
-    tk.Label(script_links_frame, text="SN.", width=8, anchor="w", font=("TkDefaultFont", 10, "bold")).grid(row=0, column=0, sticky="w")
-    tk.Label(script_links_frame, text="File Name", width=120, anchor="w", font=("TkDefaultFont", 10, "bold")).grid(row=0, column=1, sticky="w")
-
-    initial_script_data = [
-        ("1", "C:/Users/K09761610/OneDrive - Wells Fargo/Desktop/Retirement/Version1/abcd_Retirement_Script.sql"),
-        ("2", "C:/Users/K09761610/OneDrive - Wells Fargo/Desktop/Retirement/Version1/abcd_Rollback_Script.sql"),
-        ("3", "C:/Users/K09761610/OneDrive - Wells Fargo/Desktop/Retirement/Version1/abcd_Truncate_Table.sql"),
-        ("4", "C:/Users/K09761610/OneDrive - Wells Fargo/Desktop/Retirement/Version1/abcd_JIL_Retirement_Script.jil"),
-        ("5", "C:/Users/K09761610/OneDrive - Wells Fargo/Desktop/Retirement/Version1/abcd_JIL_Update_Script.jil")
-    ]
-    update_scripts_table(initial_script_data)
 
     return frame

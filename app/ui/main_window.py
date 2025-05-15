@@ -3,7 +3,7 @@ from tkinter import ttk
 
 from app.ui.code_review_tab import create_code_review_tab
 from app.ui.deployment_tab import create_deployment_tab
-from app.ui.github_commit_tab import create_github_commit_tab
+from app.ui.github_commit_tab import create_github_commit_tab, set_impacted_objects, set_generated_scripts
 from app.ui.home_tab import create_home_tab
 from app.ui.post_prod_validation_tab import create_post_prod_validation_tab
 from app.ui.testing_tab import create_testing_tab
@@ -12,39 +12,18 @@ def run_app():
     root = tk.Tk()
     root.title("Auto Retire Utility Tool")
     root.geometry("1200x800")
-    root.configure(bg="#ffffff")  # Set root background to white
+    root.configure(bg="#ffffff")
 
-    # Remove the following lines to eliminate the theme and style configuration
-    # style = ttk.Style(root)
-    # style.theme_use("default")
-    # style.configure(".", background="#ffffff", foreground="#000000")
-    # style.configure("TNotebook", background="#ffffff", borderwidth=0, foreground="#000000")
-    # style.configure("TNotebook.Tab", background="#ffffff", foreground="#000000")
-    # style.configure("TFrame", background="#ffffff")
-    # style.configure("TLabelframe", background="#ffffff", foreground="#000000")
-    # style.configure("TLabelframe.Label", background="#ffffff", foreground="#000000")
-    # style.configure("TLabel", background="#ffffff", foreground="#000000")
-    # style.configure("TEntry", fieldbackground="#ffffff", foreground="#000000")
-    # style.configure("TButton", background="#ffffff", foreground="#000000")
-
-
-    # bg_image = Image.open("background.jpg")
-    # bg_image = bg_image.resize((500, 300), Image.ANTIALIAS)  # Resize if needed
-    # bg_photo = ImageTk.PhotoImage(bg_image)
-    # --- Login Frame ---
     login_frame = tk.Frame(root)
     login_frame.pack(fill=tk.BOTH, expand=True)
 
-    # background_label = tk.Label(frame, image=bg_photo)
-    # background_label.place(x=0, y=0, relwidth=1, relheight=1)
-    # background_label.lower()
-
-    tk.Label(login_frame, text="Username:", ).pack(pady=(80, 5))
-    username_entry = tk.Entry(login_frame)
+    username_var = tk.StringVar(value="admin")
+    tk.Label(login_frame, text="Username:").pack(pady=(80, 5))
+    username_entry = tk.Entry(login_frame,textvariable=username_var)
     username_entry.pack()
 
     tk.Label(login_frame, text="Password:").pack(pady=(10, 5))
-    password_entry = tk.Entry(login_frame, show="*")
+    password_entry = tk.Entry(login_frame, show="*",textvariable=username_var)
     password_entry.pack()
 
     def try_login():
@@ -58,9 +37,7 @@ def run_app():
 
     tk.Button(login_frame, text="Login", command=try_login).pack(pady=20)
 
-    # --- Main App UI ---
     def show_main_window():
-        # Top frame for logout button
         top_frame = tk.Frame(root)
         top_frame.pack(fill=tk.X, side=tk.TOP)
         tk.Button(top_frame, text="Logout", command=logout).pack(anchor="ne", padx=10, pady=10)
@@ -68,35 +45,69 @@ def run_app():
         notebook = ttk.Notebook(root)
         notebook.pack(fill=tk.BOTH, expand=True)
 
-        # Home Tab
+        # Create frames for each tab
         home_frame = create_home_tab(notebook)
-        notebook.add(home_frame, text="Home")
-
-        # GithubCommit Tab
-        github_commit_frame = create_github_commit_tab(notebook)
-        notebook.add(github_commit_frame, text="GithubCommit")
-
-        # Code Review Tab
+        github_commit_frame = create_github_commit_tab(notebook, home_frame=home_frame)
         code_review_frame = create_code_review_tab(notebook)
-        notebook.add(code_review_frame, text="Code Review")
-
-        # Deployment Tab
         deployment_frame = create_deployment_tab(notebook)
-        notebook.add(deployment_frame, text="Deployment")
-
-        # Testing Tab
         testing_frame = create_testing_tab(notebook)
-        notebook.add(testing_frame, text="Testing")
-
-        # Post PROD Validation Tab
         post_prod_validation_frame = create_post_prod_validation_tab(notebook)
+
+        # Add tabs to notebook
+        notebook.add(home_frame, text="Home")
+        notebook.add(github_commit_frame, text="GithubCommit")
+        notebook.add(code_review_frame, text="Code Review")
+        notebook.add(deployment_frame, text="Deployment")
+        notebook.add(testing_frame, text="Testing")
         notebook.add(post_prod_validation_frame, text="Post PROD Validation")
 
-        # Store references for logout
+        # Disable all tabs except the first
+        for i in range(1, notebook.index("end")):
+            notebook.tab(i, state="disabled")
+
+        # Helper to enable the next tab and select it
+        def enable_next_tab(current_index):
+            if current_index + 1 < notebook.index("end"):
+                notebook.tab(current_index + 1, state="normal")
+                notebook.select(current_index + 1)
+
+        # Add "Next" buttons to each tab except the last
+        frames = [
+            home_frame,
+            github_commit_frame,
+            code_review_frame,
+            deployment_frame,
+            testing_frame
+        ]
+        for idx, frame in enumerate(frames):
+            def on_next(i=idx):
+                if i == 0:  # Home tab "Next"
+                    # Collect impacted objects from home tab
+                    impacted_objects = []
+                    for row in home_frame.row_widgets:
+                        if row["selected"].get():
+                            impacted_objects.append((
+                                row["object_type"].get(),
+                                row["object_name"].get(),
+                                row["server_path"].get()
+                            ))
+                    # Ensure impacted_objects is not empty
+                    if not impacted_objects:
+                        print("No impacted objects selected.")
+                    else:
+                        print(f"Impacted objects: {impacted_objects}")
+                    set_impacted_objects(impacted_objects)
+                    # Collect all scripts from home_frame.generated_script_paths
+                    generated_scripts = getattr(home_frame, "generated_script_paths", [])
+                    print(f"Generated scripts: {generated_scripts}")
+                    set_generated_scripts(generated_scripts)
+                enable_next_tab(i)
+            btn = tk.Button(frame, text="Next", command=on_next)
+            btn.pack(side=tk.BOTTOM, pady=10)
+
         root._main_widgets = [top_frame, notebook]
 
     def logout():
-        # Destroy all main app widgets
         for widget in getattr(root, "_main_widgets", []):
             widget.destroy()
         login_frame.pack(fill=tk.BOTH, expand=True)
