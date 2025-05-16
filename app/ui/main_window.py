@@ -23,7 +23,8 @@ def run_app():
     username_entry.pack()
 
     tk.Label(login_frame, text="Password:").pack(pady=(10, 5))
-    password_entry = tk.Entry(login_frame, show="*",textvariable=username_var)
+    password_var = tk.StringVar(value="admin")
+    password_entry = tk.Entry(login_frame, show="*",textvariable=password_var)
     password_entry.pack()
 
     def try_login():
@@ -38,27 +39,22 @@ def run_app():
     tk.Button(login_frame, text="Login", command=try_login).pack(pady=20)
 
     def show_main_window():
-        top_frame = tk.Frame(root)
-        top_frame.pack(fill=tk.X, side=tk.TOP)
-        tk.Button(top_frame, text="Logout", command=logout).pack(anchor="ne", padx=10, pady=10)
-
-        notebook = ttk.Notebook(root)
+        shared_data = {}
+        notebook = ttk.Notebook(root)  # <-- Add this line to define notebook
         notebook.pack(fill=tk.BOTH, expand=True)
-
-        # Create frames for each tab
         home_frame = create_home_tab(notebook)
         github_commit_frame = create_github_commit_tab(notebook, home_frame=home_frame)
-        code_review_frame = create_code_review_tab(notebook)
-        deployment_frame = create_deployment_tab(notebook)
-        testing_frame = create_testing_tab(notebook)
-        post_prod_validation_frame = create_post_prod_validation_tab(notebook)
+        code_review_frame = create_code_review_tab(notebook, home_frame=home_frame)
+        deployment_frame = create_deployment_tab(notebook, home_frame=home_frame)
+        testing_frame = create_testing_tab(notebook, home_frame=home_frame)
+        post_prod_validation_frame = create_post_prod_validation_tab(notebook, home_frame=home_frame)
 
         # Add tabs to notebook
         notebook.add(home_frame, text="Home")
         notebook.add(github_commit_frame, text="GithubCommit")
-        notebook.add(code_review_frame, text="Code Review")
-        notebook.add(deployment_frame, text="Deployment")
+        # Don't add code_review_frame yet
         notebook.add(testing_frame, text="Testing")
+        notebook.add(deployment_frame, text="Deployment")
         notebook.add(post_prod_validation_frame, text="Post PROD Validation")
 
         # Disable all tabs except the first
@@ -75,9 +71,10 @@ def run_app():
         frames = [
             home_frame,
             github_commit_frame,
-            code_review_frame,
-            deployment_frame,
-            testing_frame
+            # code_review_frame will be handled specially
+            testing_frame,
+            deployment_frame
+
         ]
         for idx, frame in enumerate(frames):
             def on_next(i=idx):
@@ -101,6 +98,17 @@ def run_app():
                     generated_scripts = getattr(home_frame, "generated_script_paths", [])
                     print(f"Generated scripts: {generated_scripts}")
                     set_generated_scripts(generated_scripts)
+                if i == 1:  # After Github Commit tab, before showing Code Review
+                    nonlocal code_review_frame
+                    if code_review_frame is not None:
+                        code_review_frame.destroy()
+                    code_review_frame = create_code_review_tab(notebook, home_frame=home_frame)
+                    # Insert Code Review tab at the correct position if not already added
+                    if notebook.index("end") < 3 or notebook.tabs()[2] != str(code_review_frame):
+                        notebook.insert(2, code_review_frame, text="Code Review")
+                    else:
+                        notebook.forget(2)
+                        notebook.insert(2, code_review_frame, text="Code Review")
                 enable_next_tab(i)
             btn = tk.Button(frame, text="Next", command=on_next)
             btn.pack(side=tk.BOTTOM, pady=10)

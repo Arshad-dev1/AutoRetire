@@ -21,5 +21,11 @@ def create_deployment_tab(notebook, home_frame=None):
             jira_label.config(text=f"JIRA #: {home_frame.jira_var.get()}")
             report_label.config(text=f"Report Name: {home_frame.report_name_var.get()}")
             author_label.config(text=f"Author Email: {home_frame.author_email_var.get()}")
+        # If home_frame is provided, trace variables for live update
+    if home_frame:
+        home_frame.jira_var.trace_add("write", update_preview)
+        home_frame.report_name_var.trace_add("write", update_preview)
+        home_frame.author_email_var.trace_add("write", update_preview)
+        update_preview()
 
     return frame

@@ -7,6 +7,16 @@ import os
 IMPACTED_OBJECTS = []
 GENERATED_SCRIPTS = []
 
+COMMIT_RESULTS = []
+
+def set_commit_results(results):
+    global COMMIT_RESULTS
+    print("Setting Commit Results:", results)  # Debugging line
+    COMMIT_RESULTS = results
+
+def get_commit_results():
+    return COMMIT_RESULTS
+
 def set_impacted_objects(objects):
     global IMPACTED_OBJECTS
     IMPACTED_OBJECTS = objects
@@ -102,6 +112,9 @@ def create_github_commit_tab(notebook, home_frame=None):
     published_table_frame.pack(anchor="w")
     # Do NOT pack commit_result_frame yet; will pack after push
 
+    # Store all commit results as a list of dicts: {"commit_id": ..., "objects": [...], "scripts": [...]}
+    commit_results = []
+
     def push_to_git():
         selected_objects = []
         selected_scripts = []
@@ -111,16 +124,30 @@ def create_github_commit_tab(notebook, home_frame=None):
                     selected_objects.append(data)
                 elif typ == "script":
                     selected_scripts.append(data)
-        messagebox.showinfo("Push to Git", f"Pushed to git successfully")
+        if not selected_objects and not selected_scripts:
+            messagebox.showinfo("Push to Git", "No items selected for commit.")
+            return
 
-        # Remove selected objects from IMPACTED_OBJECTS
+        # Simulate commit ID (replace with actual git logic)
+        commit_id = f"commit_{len(commit_results)+1:03d}"
+
+        # Add this commit to the results
+        commit_results.append({
+            "commit_id": commit_id,
+            "objects": selected_objects,
+            "scripts": selected_scripts
+        })
+        set_commit_results(commit_results)
+
+        messagebox.showinfo("Push to Git", f"Pushed to git successfully\nCommit ID: {commit_id}")
+
+        # Remove selected objects/scripts from global lists
         global IMPACTED_OBJECTS, GENERATED_SCRIPTS
         IMPACTED_OBJECTS = [obj for obj in IMPACTED_OBJECTS if obj not in selected_objects]
         GENERATED_SCRIPTS = [script for script in GENERATED_SCRIPTS if script not in selected_scripts]
         refresh_table()
 
         # Show commit result section after push
-        commit_id = "abc123def"  # Replace with actual commit ID from git logic
         commit_id_var.set(f"Last Commit ID: {commit_id}")
 
         # Clear previous published table rows
@@ -128,19 +155,24 @@ def create_github_commit_tab(notebook, home_frame=None):
             widget.destroy()
 
         # Table headers
-        headers = ["Commit Id", "Name/Path"]
+        headers = ["Commit Id", "Type", "Name/Path"]
         for col, header in enumerate(headers):
             tk.Label(published_table_frame, text=header, font=("TkDefaultFont", 10, "bold"), borderwidth=1, relief="solid", width=25).grid(row=0, column=col, sticky="nsew")
 
         row = 1
-        for obj in selected_objects:
-            tk.Label(published_table_frame, text="Object", borderwidth=0, relief="solid", width=25).grid(row=row, column=0, sticky="nsew")
-            tk.Label(published_table_frame, text=f"{obj}", borderwidth=0, relief="solid", width=25).grid(row=row, column=1, sticky="nsew")
-            row += 1
-        for script in selected_scripts:
-            tk.Label(published_table_frame, text="Script", borderwidth=0, relief="solid", width=25).grid(row=row, column=0, sticky="nsew")
-            tk.Label(published_table_frame, text=f"{script}", borderwidth=0, relief="solid", width=25).grid(row=row, column=1, sticky="nsew")
-            row += 1
+        # Render all commit results
+        for commit in commit_results:
+            commit_id = commit["commit_id"]
+            for obj in commit["objects"]:
+                tk.Label(published_table_frame, text=commit_id, borderwidth=0, relief="solid", width=25).grid(row=row, column=0, sticky="nsew")
+                tk.Label(published_table_frame, text="Object", borderwidth=0, relief="solid", width=25).grid(row=row, column=1, sticky="nsew")
+                tk.Label(published_table_frame, text=f"{obj}", borderwidth=0, relief="solid", width=25).grid(row=row, column=2, sticky="nsew")
+                row += 1
+            for script in commit["scripts"]:
+                tk.Label(published_table_frame, text=commit_id, borderwidth=0, relief="solid", width=25).grid(row=row, column=0, sticky="nsew")
+                tk.Label(published_table_frame, text="Script", borderwidth=0, relief="solid", width=25).grid(row=row, column=1, sticky="nsew")
+                tk.Label(published_table_frame, text=f"{script}", borderwidth=0, relief="solid", width=25).grid(row=row, column=2, sticky="nsew")
+                row += 1
 
         commit_result_frame.pack(pady=(0, 10), fill="x")
 
