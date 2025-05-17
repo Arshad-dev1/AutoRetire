@@ -9,9 +9,9 @@ def create_testing_tab(notebook, home_frame=None):
     jira_label = tk.Label(preview_frame, text="JIRA #: ")
     jira_label.grid(row=0, column=0, sticky="w", padx=5)
     report_label = tk.Label(preview_frame, text="Report Name: ")
-    report_label.grid(row=0, column=1, sticky="w", padx=5)
+    report_label.grid(row=0, column=3, sticky="w", padx=5)
     author_label = tk.Label(preview_frame, text="Author Email: ")
-    author_label.grid(row=0, column=2, sticky="w", padx=5)
+    author_label.grid(row=0, column=6, sticky="w", padx=5)
 
     # Function to update preview labels
     def update_preview(*args):
@@ -91,18 +91,17 @@ def create_testing_tab(notebook, home_frame=None):
             row_entries.append(entry)
         step_rows.append(row_entries)
 
-    # # --- Add Row Button ---
-    # def add_step_row():
-    #     i = len(step_rows)
-    #     row_entries = []
-    #     for j in range(5):
-    #         entry = tk.Entry(frame, width=20)
-    #         entry.grid(row=7 + i, column=j, sticky="nsew", padx=1, pady=1)
-    #         row_entries.append(entry)
-    #     step_rows.append(row_entries)
+    # --- Add Row Button ---
+    def add_step_row():
+        i = len(step_rows)
+        row_entries = []
+        for j in range(5):
+            entry = tk.Entry(frame, width=20)
+            entry.grid(row=7 + i, column=j, sticky="nsew", padx=1, pady=1)
+            row_entries.append(entry)
+        step_rows.append(row_entries)
 
-    # add_row_btn = tk.Button(frame, text="Add Step", command=add_step_row)
-    # add_row_btn.grid(row=7 + len(step_rows), column=0, columnspan=5, pady=10)
+   
 
     # --- Next Button to go to Deployment Tab ---
     def on_next():

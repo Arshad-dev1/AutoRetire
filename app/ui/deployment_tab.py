@@ -25,9 +25,6 @@ def create_deployment_tab(notebook, home_frame=None):
         home_frame.author_email_var.trace_add("write", update_preview)
         update_preview()
 
-    # --- Header ---
-    header = tk.Label(frame, text="Deployment Page", font=("TkDefaultFont", 12, "bold"), bg="#d9d9d9")
-    header.pack(fill=tk.X, padx=10, pady=(10, 5))
 
     # --- Artifact Details (GitHub) Section ---
     artifact_section = ttk.LabelFrame(frame, text="Artifact Details (Github):")
@@ -48,8 +45,28 @@ def create_deployment_tab(notebook, home_frame=None):
     # --- TFS Check-in/Deploy Section ---
     tfs_checkin_frame = tk.Frame(frame)
     tfs_checkin_frame.pack(fill=tk.X, padx=10, pady=(15, 5))
-    tfs_checkin_label = tk.Label(tfs_checkin_frame, text="TFS Check-in / Deploy", font=("TkDefaultFont", 10, "bold"), bg="#d9d9d9")
-    tfs_checkin_label.pack(fill=tk.X)
+
+    def populate_tfs_artifacts():
+        # Example data to populate the TFS Artifacts table
+        example_data = [
+            "Pipeline-1",
+            "Build-123",
+            "Success",
+            "http://release-url",
+            "Deployed"
+        ]
+        for col, value in enumerate(example_data):
+            tfs_artifact_section.grid_slaves(row=1, column=col)[0].config(text=value)
+
+    tfs_checkin_btn = tk.Button(
+        frame,
+        text="TFS Check-in / Deploy",
+        font=("TkDefaultFont", 9, "bold"),
+        bg="#d9d9d9",
+        command=populate_tfs_artifacts
+    )
+    tfs_checkin_btn.pack(pady=(10, 2))
+    
 
     # --- TFS Artifacts Section ---
     tfs_artifact_section = ttk.LabelFrame(frame, text="TFS Artifacts:")

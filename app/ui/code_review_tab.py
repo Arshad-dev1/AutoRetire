@@ -30,10 +30,6 @@ def create_code_review_tab(notebook, home_frame=None, shared_data=None):
         home_frame.report_name_var.trace_add("write", update_preview)
         home_frame.author_email_var.trace_add("write", update_preview)
 
-    # --- Code Review Page Title ---
-    title_label = tk.Label(frame, text="Code Review Page", font=("TkDefaultFont", 12, "bold"))
-    title_label.pack(pady=(10, 2))
-
     # --- Commit Table Section ---
     commit_table_frame = tk.Frame(frame)
     commit_table_frame.pack(fill=tk.X, padx=10, pady=5)
@@ -61,8 +57,8 @@ def create_code_review_tab(notebook, home_frame=None, shared_data=None):
 
     # --- Code Review Section ---
     def populate_review_details():
-        review_details_text.delete("1.0", tk.END)
-        review_details_text.insert(tk.END, "Sample review details loaded.")
+        # review_details_text.delete("1.0", tk.END)
+        # review_details_text.insert(tk.END, "Sample review details loaded.")
         status_var.set("Pass")
         sample_reviews = [
             ("Object1", "Pass", "Looks good"),
@@ -74,16 +70,20 @@ def create_code_review_tab(notebook, home_frame=None, shared_data=None):
                 review_entries[i][1].set(review[1])
                 review_entries[i][2].delete(0, tk.END)
                 review_entries[i][2].insert(0, review[2])
+        # Make review table read-only after population
+        for _, status_entry, comment_entry in review_entries:
+            status_entry.config(state="disabled")
+            comment_entry.config(state="disabled")
 
     review_button = tk.Button(frame, text="Code Review", font=("TkDefaultFont", 10, "bold"), bg="#e0e0e0", command=populate_review_details)
     review_button.pack(pady=(10, 2))
-    
-    review_section = tk.LabelFrame(frame, text="Code Review")
+
+    review_section = tk.LabelFrame(frame, text="Review Details")
     review_section.pack(fill=tk.X, padx=10, pady=10)
-    # Review Details
-    tk.Label(review_section, text="Review Details:").grid(row=0, column=0, sticky="nw", padx=5, pady=2)
-    review_details_text = tk.Text(review_section, height=3, width=60)
-    review_details_text.grid(row=0, column=1, sticky="w", padx=5, pady=2)
+    # # Review Details
+    # tk.Label(review_section, text="Review Details:").grid(row=0, column=0, sticky="nw", padx=5, pady=2)
+    # review_details_text = tk.Text(review_section, height=3, width=60)
+    # review_details_text.grid(row=0, column=1, sticky="w", padx=5, pady=2)
 
     # Overall Status
     tk.Label(review_section, text="Overall Status:").grid(row=1, column=0, sticky="w", padx=5, pady=2)
@@ -126,7 +126,7 @@ def create_code_review_tab(notebook, home_frame=None, shared_data=None):
 
     def on_next():
         # Collect review details and statuses
-        review_details = review_details_text.get("1.0", tk.END).strip()
+        # review_details = review_details_text.get("1.0", tk.END).strip()
         overall_status = status_var.get()
         review_results = []
         for obj_name, status_entry, comment_entry in review_entries:
@@ -135,7 +135,7 @@ def create_code_review_tab(notebook, home_frame=None, shared_data=None):
             review_results.append({"object": obj_name, "status": status, "comment": comment})
         # Optionally, store in shared_data or global for deployment tab
         if shared_data is not None:
-            shared_data["review_details"] = review_details
+            # shared_data["review_details"] = review_details
             shared_data["overall_status"] = overall_status
             shared_data["review_results"] = review_results
         # Move to next tab (deployment)
