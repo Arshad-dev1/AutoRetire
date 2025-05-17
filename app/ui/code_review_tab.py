@@ -95,8 +95,7 @@ def create_code_review_tab(notebook, home_frame=None, shared_data=None):
 
     # --- Review Table Section ---
     review_table_frame = ttk.Frame(review_section, style="TFrame")
-    # review_table_frame.pack(fill=tk.X, padx=10, pady=10)
-    review_table_frame.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
+    review_table_frame.grid(row=2, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
 
     # Table headers
     ttk.Label(review_table_frame, text="S.No", font=("TkDefaultFont", 10, "bold"), borderwidth=0, relief="solid", width=5, style="TLabel").grid(row=0, column=0, sticky="nsew", padx=8, pady=6)
@@ -104,19 +103,30 @@ def create_code_review_tab(notebook, home_frame=None, shared_data=None):
     ttk.Label(review_table_frame, text="Status", font=("TkDefaultFont", 10, "bold"), borderwidth=0, relief="solid", width=10, style="TLabel").grid(row=0, column=2, sticky="nsew", padx=8, pady=6)
     ttk.Label(review_table_frame, text="Comments", font=("TkDefaultFont", 10, "bold"), borderwidth=0, relief="solid", width=30, style="TLabel").grid(row=0, column=3, sticky="nsew", padx=8, pady=6)
 
-    # Populate review table with objects/scripts from all commits
-    review_row = 1
+    # Initially, do not populate any rows
     review_entries = []
-    for obj in commit_results:
-        object_name = obj.get("artifactname", "")
-        ttk.Label(review_table_frame, text=str(review_row), borderwidth=0, relief="solid", width=5, style="TLabel").grid(row=review_row, column=0, sticky="nsew", padx=8, pady=6)
-        ttk.Label(review_table_frame, text=str(object_name), borderwidth=0, relief="solid", width=25, anchor="w", style="TLabel").grid(row=review_row, column=1, sticky="nsew", padx=8, pady=6)
-        status_entry = ttk.Combobox(review_table_frame, values=["Pass", "Fail"], width=8, state="readonly", style="Material.TCombobox")
-        status_entry.grid(row=review_row, column=2, sticky="nsew", padx=8, pady=6)
-        comment_entry = ttk.Entry(review_table_frame, width=30, style="Material.TEntry")
-        comment_entry.grid(row=review_row, column=3, sticky="nsew", padx=8, pady=6)
-        review_entries.append((object_name, status_entry, comment_entry))
-        review_row += 1
+
+    def populate_review_details():
+        # Clear any existing rows (except headers)
+        for widget in review_table_frame.winfo_children():
+            info = widget.grid_info()
+            if info['row'] > 0:
+                widget.destroy()
+
+        status_var.set("Pass")
+        commit_results = get_commit_results()
+        review_row = 1
+        review_entries.clear()
+        for obj in commit_results:
+            object_name = obj.get("artifactname", "")
+            ttk.Label(review_table_frame, text=str(review_row), borderwidth=0, relief="solid", width=5, style="TLabel").grid(row=review_row, column=0, sticky="nsew", padx=8, pady=6)
+            ttk.Label(review_table_frame, text=str(object_name), borderwidth=0, relief="solid", width=25, anchor="w", style="TLabel").grid(row=review_row, column=1, sticky="nsew", padx=8, pady=6)
+            status_label = ttk.Label(review_table_frame, text="", width=8, style="TLabel")
+            status_label.grid(row=review_row, column=2, sticky="nsew", padx=8, pady=6)
+            comment_label = ttk.Label(review_table_frame, text="", width=30, style="TLabel")
+            comment_label.grid(row=review_row, column=3, sticky="nsew", padx=8, pady=6)
+            review_entries.append((object_name, status_label, comment_label))
+            review_row += 1
 
     def on_next():
         # Collect review details and statuses

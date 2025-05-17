@@ -78,13 +78,13 @@ def create_testing_tab(notebook, home_frame=None):
 
     # --- Test Steps Rows ---
     step_rows = []
-    for i in range(3):
-        row_entries = []
-        for j in range(5):
-            entry = ttk.Entry(test_details_frame, width=20, style="Material.TEntry")
-            entry.grid(row=2 + i, column=j, sticky="nsew", padx=8, pady=6)
-            row_entries.append(entry)
-        step_rows.append(row_entries)
+    # for i in range(3):
+    #     row_entries = []
+    #     for j in range(5):
+    #         entry = ttk.Entry(test_details_frame, width=20, style="Material.TEntry")
+    #         entry.grid(row=2 + i, column=j, sticky="nsew", padx=8, pady=6)
+    #         row_entries.append(entry)
+    #     step_rows.append(row_entries)
 
     # --- Add Row Button ---
     def add_step_row():

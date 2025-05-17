@@ -141,6 +141,7 @@ def run_app():
 
         notebook.add(home_frame, text="Home")
         notebook.add(github_commit_frame, text="GithubCommit")
+        notebook.add(code_review_frame, text="Code Review")
         notebook.add(testing_frame, text="Testing")
         notebook.add(deployment_frame, text="Deployment")
         notebook.add(post_prod_validation_frame, text="Post PROD Validation")

@@ -66,7 +66,7 @@ def create_github_commit_tab(notebook, home_frame=None):
     table_frame.pack(fill=tk.X, padx=10, pady=10)
     
     # Table headers
-    headers = ["", "ObjectType", "ObjectName", "Server/Path", "Github Path"]
+    headers = ["", "ObjectType", "ObjectName", "Source Github Path", "Target Github Path"]
     for col_idx, header in enumerate(headers):
         ttk.Label(
             table_frame,
@@ -95,7 +95,7 @@ def create_github_commit_tab(notebook, home_frame=None):
             cb.grid(row=row, column=0, sticky="nsew", padx=8, pady=6)
             ttk.Label(table_frame, text=obj[0], borderwidth=0, relief="solid", style="TLabel").grid(row=row, column=1, sticky="nsew", padx=8, pady=6)
             ttk.Label(table_frame, text=obj[1], borderwidth=0, relief="solid", style="TLabel").grid(row=row, column=2, sticky="nsew", padx=8, pady=6)
-            ttk.Label(table_frame, text=obj[2], borderwidth=0, relief="solid", style="TLabel").grid(row=row, column=3, sticky="nsew", padx=8, pady=6)
+            ttk.Label(table_frame, text="N/A", borderwidth=0, relief="solid", style="TLabel").grid(row=row, column=3, sticky="nsew", padx=8, pady=6)
             github_path_var = tk.StringVar(value="")
             github_path_entry = ttk.Entry(table_frame, textvariable=github_path_var, width=30, style="Material.TEntry")
             github_path_entry.grid(row=row, column=4, sticky="nsew", padx=8, pady=6)
@@ -110,7 +110,7 @@ def create_github_commit_tab(notebook, home_frame=None):
             file_name = os.path.splitext(filename)[0]
             ttk.Label(table_frame, text="Script", borderwidth=0, relief="solid", style="TLabel").grid(row=row, column=1, sticky="nsew", padx=8, pady=6)
             ttk.Label(table_frame, text=file_name, borderwidth=0, relief="solid", style="TLabel").grid(row=row, column=2, sticky="nsew", padx=8, pady=6)
-            ttk.Label(table_frame, text=script_path, borderwidth=0, relief="solid", style="TLabel").grid(row=row, column=3, sticky="nsew", padx=8, pady=6)
+            ttk.Label(table_frame, text="N/A", borderwidth=0, relief="solid", style="TLabel").grid(row=row, column=3, sticky="nsew", padx=8, pady=6)
             github_path_var = tk.StringVar(value="")
             github_path_entry = ttk.Entry(table_frame, textvariable=github_path_var, width=30, style="Material.TEntry")
             github_path_entry.grid(row=row, column=4, sticky="nsew", padx=8, pady=6)

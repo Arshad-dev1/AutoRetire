@@ -79,7 +79,8 @@ def create_home_tab(notebook):
 
     # Table body
     rows_frame = tk.Frame(rows_container, bg="#f5f5f5")
-    rows_frame.pack(fill=tk.X, padx=5, pady=2)
+    # rows_frame.pack(fill=tk.X, padx=5, pady=2)
+    rows_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=2)
 
     # Attach row_widgets to the frame
     frame.row_widgets = []
@@ -91,8 +92,10 @@ def create_home_tab(notebook):
             row["selected"].set(False)
         else:
             cb.config(state="normal")
+    
 
     def add_row(object_type="", object_name="", server_path=""):
+        print("adding new Row")
         row = {}
         row_idx = len(frame.row_widgets)
         row["selected"] = tk.BooleanVar()
@@ -113,11 +116,30 @@ def create_home_tab(notebook):
             cb.config(state="disabled")
         frame.row_widgets.append(row)
 
-    # Add initial 1 empty row
-    for _ in range(1):
-        add_row()
+    def add_empty_row():
+        row = {}
+        row_idx = rows_frame.grid_size()[1]
+        print("Adding empty row",row_idx)
+        row["selected"] = tk.BooleanVar()
+        cb = ttk.Checkbutton(rows_frame, variable=row["selected"])
+        cb.grid(row=row_idx, column=0, padx=2, pady=2)
+        row["object_type"] = ttk.Combobox(rows_frame, values=OBJECT_TYPES, width=18, style="Material.TCombobox")
+        row["object_type"].set("")
+        row["object_type"].grid(row=row_idx, column=1, padx=2, pady=2)
+        row["object_name"] = ttk.Entry(rows_frame, width=28, style="Material.TEntry")
+        row["object_name"].delete(0, tk.END)
+        row["object_name"].grid(row=row_idx, column=2, padx=2, pady=2)
+        row["server_path"] = ttk.Entry(rows_frame, width=38, style="Material.TEntry")
+        row["server_path"].delete(0, tk.END)
+        row["server_path"].grid(row=row_idx, column=3, padx=2, pady=2)
+        row["object_type"].bind("<<ComboboxSelected>>", lambda e, r=row, c=cb: on_object_type_change(None, None, None, r, c))
+        cb.config(state="normal")
+        frame.row_widgets.append(row)
+        # Update scrollregion so new rows are visible
+        impacted_canvas.configure(scrollregion=impacted_canvas.bbox("all"))
 
-    add_btn = ttk.Button(impacted_frame, text="Add", command=add_row, style="Material.TButton")
+    # Update Add button to use the new method
+    add_btn = ttk.Button(impacted_frame, text="Add", command=add_empty_row, style="Material.TButton")
     add_btn.pack(anchor="e", padx=10, pady=5)
 
     def fill_impacted_objects():
