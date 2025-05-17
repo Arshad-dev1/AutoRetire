@@ -11,26 +11,86 @@ from app.ui.testing_tab import create_testing_tab
 def run_app():
     root = tk.Tk()
     root.title("Auto Retire Utility Tool")
-    root.geometry("1200x800")
-    root.configure(bg="#ffffff")
+    root.geometry("1366x768")
+    root.configure(bg="#f5f5f5")  # Use light grey for the main background
 
-    # Add this block to set tab spacing
+    # Set ttk theme and colors for material look
     style = ttk.Style()
-    style.configure("TNotebook.Tab", padding=[20, 5])  # [horizontal, vertical] padding
-    style.configure("TNotebook", tabmargins=[10, 5, 10, 0])  # [left, top, right, bottom] margins
+    style.theme_use("default")
+    style.configure(".", background="#f5f5f5", foreground="#000000")
+    style.configure("TFrame", background="#f5f5f5")
+    style.configure("TLabel", background="#f5f5f5", foreground="#000000")
+    style.configure("TFrame.TLabel", background="#ffffff", foreground="#000000")
+    style.configure("TNotebook", background="#f5f5f5")
+    style.configure("TNotebook.Tab", background="#ffffff", foreground="#000000", padding=[20, 5])
+    style.map("TNotebook.Tab", background=[("selected", "#e0e0e0")])
+    # Material-like button
+    style.configure(
+        "Material.TButton",
+        background="#ffffff",
+        foreground="#000000",
+        borderwidth=0,
+        focusthickness=3,
+        focuscolor="#2196F3",
+        padding=(12, 8),
+        relief="flat"
+    )
+    style.map(
+        "Material.TButton",
+        background=[("active", "#e0e0e0"), ("pressed", "#bbdefb")],
+        relief=[("pressed", "groove"), ("!pressed", "flat")]
+    )
+    # Material-like entry
+    style.configure(
+        "Material.TEntry",
+        fieldbackground="#ffffff",
+        foreground="#000000",
+        borderwidth=2,
+        relief="flat",
+        padding=8
+    )
+    # Treeview/Table white/grey theme
+    style.configure(
+        "Treeview",
+        background="#ffffff",
+        foreground="#000000",
+        fieldbackground="#ffffff",
+        bordercolor="#e0e0e0",
+        borderwidth=0
+    )
+    style.configure(
+        "Treeview.Heading",
+        background="#f5f5f5",
+        foreground="#000000",
+        bordercolor="#e0e0e0",
+        borderwidth=0
+    )
 
-    login_frame = tk.Frame(root)
+    login_frame = tk.Frame(root, bg="#f5f5f5")
     login_frame.pack(fill=tk.BOTH, expand=True)
 
     username_var = tk.StringVar(value="admin")
-    tk.Label(login_frame, text="Username:").pack(pady=(80, 5))
-    username_entry = tk.Entry(login_frame,textvariable=username_var)
+    ttk.Label(login_frame, text="Username:").pack(pady=(80, 5))
+    username_entry = ttk.Entry(login_frame, textvariable=username_var, style="Material.TEntry")
     username_entry.pack()
 
-    tk.Label(login_frame, text="Password:").pack(pady=(10, 5))
+    ttk.Label(login_frame, text="Password:").pack(pady=(10, 5))
     password_var = tk.StringVar(value="admin")
-    password_entry = tk.Entry(login_frame, show="*",textvariable=password_var)
+    password_entry = ttk.Entry(login_frame, show="*", textvariable=password_var, style="Material.TEntry")
     password_entry.pack()
+
+    def logout():
+        for widget in root.winfo_children():
+            if widget != login_frame:
+                widget.destroy()
+
+        # Reset login form
+            username_var.set("")
+            password_var.set("")
+            username_entry.focus_set()
+
+            # Show login frame again
+            login_frame.pack(fill=tk.BOTH, expand=True)
 
     def try_login():
         username = username_entry.get()
@@ -41,10 +101,17 @@ def run_app():
         else:
             tk.messagebox.showerror("Login Failed", "Invalid username or password.")
 
-    tk.Button(login_frame, text="Login", command=try_login).pack(pady=20)
+    ttk.Button(
+        login_frame,
+        text="Login",
+        command=try_login,
+        style="Material.TButton"
+    ).pack(pady=20)
 
     def show_main_window():
-        shared_data = {}
+        top_frame = ttk.Frame(root, style="TFrame")
+        top_frame.pack(fill=tk.X, side=tk.TOP)
+        ttk.Button(top_frame, text="Logout", command=logout, style="Material.TButton").pack(anchor="ne", padx=10, pady=10)
         notebook = ttk.Notebook(root)  # <-- Add this line to define notebook
         notebook.pack(fill=tk.BOTH, expand=True)
         home_frame = create_home_tab(notebook)
@@ -87,9 +154,11 @@ def run_app():
                     # Collect impacted objects from home tab
                     impacted_objects = []
                     for row in home_frame.row_widgets:
-                        if row["selected"].get():
+                        obj_type = row["object_type"].get()
+                        # Always include SSRS and SSIS, otherwise only if selected
+                        if obj_type in ("SSRS", "SSIS") or row["selected"].get():
                             impacted_objects.append((
-                                row["object_type"].get(),
+                                obj_type,
                                 row["object_name"].get(),
                                 row["server_path"].get()
                             ))
@@ -115,16 +184,9 @@ def run_app():
                         notebook.forget(2)
                         notebook.insert(2, code_review_frame, text="Code Review")
                 enable_next_tab(i)
-            btn = tk.Button(frame, text="Next", command=on_next)
+            btn = ttk.Button(frame, text="Next", command=on_next, style="Material.TButton")
             btn.pack(side=tk.BOTTOM, pady=10)
 
         root._main_widgets = [top_frame, notebook]
-
-    def logout():
-        for widget in getattr(root, "_main_widgets", []):
-            widget.destroy()
-        login_frame.pack(fill=tk.BOTH, expand=True)
-        username_entry.delete(0, tk.END)
-        password_entry.delete(0, tk.END)
 
     root.mainloop()
