@@ -14,6 +14,11 @@ def run_app():
     root.geometry("1200x800")
     root.configure(bg="#ffffff")
 
+    # Add this block to set tab spacing
+    style = ttk.Style()
+    style.configure("TNotebook.Tab", padding=[20, 5])  # [horizontal, vertical] padding
+    style.configure("TNotebook", tabmargins=[10, 5, 10, 0])  # [left, top, right, bottom] margins
+
     login_frame = tk.Frame(root)
     login_frame.pack(fill=tk.BOTH, expand=True)
 
