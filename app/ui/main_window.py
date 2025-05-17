@@ -12,7 +12,7 @@ from app.ui.testing_tab import create_testing_tab
 def run_app():
     root = tk.Tk()
     root.title("Auto Retire Utility Tool")
-    root.geometry("1366x768")
+    root.geometry("1200x800")
     root.configure(bg="#f5f5f5")
 
     # Set ttk theme and colors
