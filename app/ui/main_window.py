@@ -146,7 +146,7 @@ def run_app():
         notebook.add(deployment_frame, text="Deployment")
         notebook.add(post_prod_validation_frame, text="Post PROD Validation")
 
-        for i in range(1, notebook.index("end")):
+        for i in range(1, notebook.index("end")-1):
             notebook.tab(i, state="disabled")
 
         def enable_next_tab(current_index):
