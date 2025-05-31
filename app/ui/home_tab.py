@@ -59,7 +59,7 @@ def create_home_tab(notebook):
     impacted_frame.pack(fill=tk.BOTH, padx=10, pady=5, expand=True)
 
     # Scrollable Canvas for Impacted Objects
-    impacted_canvas = tk.Canvas(impacted_frame, height=180, bg="#f5f5f5", highlightthickness=0)
+    impacted_canvas = tk.Canvas(impacted_frame, height=150, bg="#f5f5f5", highlightthickness=0)
     impacted_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
     impacted_scrollbar = ttk.Scrollbar(impacted_frame, orient="vertical", command=impacted_canvas.yview)
     impacted_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)

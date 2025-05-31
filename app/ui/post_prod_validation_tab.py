@@ -4,6 +4,7 @@ from tkinter import ttk
 def create_post_prod_validation_tab(notebook, home_frame=None):
     frame = ttk.Frame(notebook)
 
+    # --- Preview Section ---
     preview_frame = ttk.LabelFrame(frame, text="Submission Preview")
     preview_frame.pack(fill=tk.X, padx=10, pady=5)
     jira_label = ttk.Label(preview_frame, text="JIRA #: ", style="TLabel")
@@ -25,7 +26,7 @@ def create_post_prod_validation_tab(notebook, home_frame=None):
         home_frame.author_email_var.trace_add("write", update_preview)
         update_preview()
 
-    # --- FixVersion Label and Entry ---
+    # --- FixVersion Section ---
     fixversion_frame = ttk.Frame(frame)
     fixversion_frame.pack(fill=tk.X, padx=10, pady=(10, 2))
     fixversion_frame.columnconfigure(0, weight=1)
@@ -51,23 +52,54 @@ def create_post_prod_validation_tab(notebook, home_frame=None):
 
     # --- Card Details Section ---
     card_details_frame = ttk.LabelFrame(frame, text="Card Details")
-    card_details_frame.pack(fill=tk.BOTH, padx=10, pady=10, expand=True)
+    card_details_frame.pack(fill=tk.BOTH, padx=10, pady=5, expand=True)
 
-    # Table headers (now includes FixVersion)
+    # Container Frame for Canvas + Scrollbars
+    card_table_container = ttk.Frame(card_details_frame)
+    card_table_container.pack(fill=tk.BOTH, expand=True)
+
+    # Canvas and Scrollbars
+    canvas_card = tk.Canvas(
+        card_table_container, highlightthickness=0, bg="#f5f5f5", bd=0, height=60
+    )
+    v_scrollbar_card = ttk.Scrollbar(card_table_container, orient="vertical", command=canvas_card.yview)
+    h_scrollbar_card = ttk.Scrollbar(card_table_container, orient="horizontal", command=canvas_card.xview)
+
+    v_scrollbar_card.pack(side="right", fill="y")
+    h_scrollbar_card.pack(side="bottom", fill="x")
+    canvas_card.pack(side="left", fill="both", expand=True, pady=2, padx=5, ipady=0, ipadx=0)
+
+    canvas_card.configure(yscrollcommand=v_scrollbar_card.set, xscrollcommand=h_scrollbar_card.set)
+
+    # Frame inside Canvas for table
+    card_table_frame = ttk.Frame(canvas_card)
+    canvas_card.create_window((0, 0), window=card_table_frame, anchor="nw")
+
+    # --- Table Headers ---
     card_headers = ["JIRA#", "FixVersion", "Report Name", "SSIS", "Autosys", "SQLObjects", "Status"]
     for col, header_text in enumerate(card_headers):
-        ttk.Label(card_details_frame, text=header_text, font=("TkDefaultFont", 10, "bold"), borderwidth=0, relief="solid", width=15).grid(row=0, column=col, sticky="nsew", padx=8, pady=6)
+        ttk.Label(
+            card_table_frame, text=header_text, font=("TkDefaultFont", 10, "bold"),
+            borderwidth=0, relief="solid", width=15
+        ).grid(row=0, column=col, sticky="nsew", padx=4, pady=4)
 
-    # Example row (replace with actual data fetching logic)
-    # example_row = ["JIRA-001", "1.0.0", "ReportA", "Yes", "No", "ObjX, ObjY", "Validated"]
-    # for col, value in enumerate(example_row):
-    #     ttk.Label(card_details_frame, text=value, borderwidth=0, relief="solid", width=15).grid(row=1, column=col, sticky="nsew", padx=8, pady=6)
+    # --- Example Rows (replace with real data) ---
+    example_rows = [
+        ["JIRA-001", "1.0.0", "ReportA", "Yes", "No", "ObjX, ObjY", "Validated"],
+        ["JIRA-002", "1.0.1", "ReportB", "No", "Yes", "ObjZ", "In Progress"],
+        ["JIRA-003", "1.1.0", "ReportC", "Yes", "No", "ObjA, ObjB, ObjC", "Done"],
+    ]
 
-    # Function to update preview labels
-    def update_preview(*args):
-        if home_frame:
-            jira_label.config(text=f"JIRA #: {home_frame.jira_var.get()}")
-            report_label.config(text=f"Report Name: {home_frame.report_name_var.get()}")
-            author_label.config(text=f"Author Email: {home_frame.author_email_var.get()}")
+    for r, row_data in enumerate(example_rows, start=1):
+        for c, value in enumerate(row_data):
+            ttk.Label(
+                card_table_frame, text=value, borderwidth=0, relief="solid", width=15
+            ).grid(row=r, column=c, sticky="nsew", padx=4, pady=4)
+
+    # Configure Scroll Region on Frame Resize
+    def on_card_frame_configure(event):
+        canvas_card.configure(scrollregion=canvas_card.bbox("all"))
+
+    card_table_frame.bind("<Configure>", on_card_frame_configure)
 
     return frame

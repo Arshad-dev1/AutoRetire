@@ -62,9 +62,36 @@ def create_github_commit_tab(notebook, home_frame=None):
     object_frame = ttk.LabelFrame(frame, text="Impacted Objects Preview")
     object_frame.pack(fill=tk.X, padx=10, pady=10)
 
-    table_frame = ttk.Frame(object_frame, style="TFrame")
-    table_frame.pack(fill=tk.X, padx=10, pady=10)
+    table_container = ttk.Frame(object_frame)
+    table_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+    canvas = tk.Canvas(table_container, highlightthickness=0, bg="#f5f5f5", bd=0)
+    v_scrollbar = ttk.Scrollbar(table_container, orient="vertical", command=canvas.yview)
+    h_scrollbar = ttk.Scrollbar(table_container, orient="horizontal", command=canvas.xview)
+
+    v_scrollbar.pack(side="right", fill="y")
+    h_scrollbar.pack(side="bottom", fill="x")
+    # canvas.pack(side="left", fill="both", expand=True)
+    canvas.pack(side="left", fill="both", expand=True, pady=5, padx=5, ipady=5, ipadx=5)
+    canvas.configure(height=200)
+
+    canvas.configure(yscrollcommand=v_scrollbar.set, xscrollcommand=h_scrollbar.set)
+
+    table_frame = ttk.Frame(canvas, style="TFrame")
+    canvas.create_window((0, 0), window=table_frame, anchor="nw")
+
+    def on_frame_configure(event):
+        canvas.configure(scrollregion=canvas.bbox("all"))
+
+    table_frame.bind("<Configure>", on_frame_configure)
     
+    def on_mousewheel(event):
+        canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
+    canvas.bind_all("<MouseWheel>", on_mousewheel)  # For Windows
+    canvas.bind_all("<Button-4>", lambda e: canvas.yview_scroll(-1, "units"))  # For Linux
+    canvas.bind_all("<Button-5>", lambda e: canvas.yview_scroll(1, "units"))   # For Linux
+
     # Table headers
     headers = ["", "ObjectType", "ObjectName", "Source Github Path", "Target Github Path"]
     for col_idx, header in enumerate(headers):
@@ -126,8 +153,24 @@ def create_github_commit_tab(notebook, home_frame=None):
     # commit_id_label = tk.Label(commit_result_frame, textvariable=commit_id_var, fg="green", font=("TkDefaultFont", 10, "bold"), bg="#ffffff")
     # commit_id_label.pack(anchor="w", pady=(0, 5))
     # Table header for published items
-    published_table_frame = ttk.Frame(commit_result_frame, style="TFrame")
-    published_table_frame.pack(anchor="w")
+    published_container = ttk.Frame(commit_result_frame)
+    published_container.pack(fill=tk.BOTH, expand=True)
+
+    canvas_pub = tk.Canvas(published_container, highlightthickness=0, bg="#f5f5f5", bd=0)
+    v_scrollbar_pub = ttk.Scrollbar(published_container, orient="vertical", command=canvas_pub.yview)
+    h_scrollbar_pub = ttk.Scrollbar(published_container, orient="horizontal", command=canvas_pub.xview)
+
+    v_scrollbar_pub.pack(side="right", fill="y")
+    h_scrollbar_pub.pack(side="bottom", fill="x")
+    # canvas_pub.pack(side="left", fill="both", expand=True)
+    canvas_pub.pack(side="left", fill="both", expand=True, pady=5, padx=5, ipady=5, ipadx=5)
+    canvas_pub.configure(height=200)
+
+    canvas_pub.configure(yscrollcommand=v_scrollbar_pub.set, xscrollcommand=h_scrollbar_pub.set)
+
+    published_table_frame = ttk.Frame(canvas_pub, style="TFrame")
+    canvas_pub.create_window((0, 0), window=published_table_frame, anchor="nw")
+
     # Do NOT pack commit_result_frame yet; will pack after push
 
     # Store all commit results as a list of dicts: {"commit_id": ..., "objects": [...], "scripts": [...]}
@@ -289,5 +332,10 @@ def create_github_commit_tab(notebook, home_frame=None):
         IMPACTED_OBJECTS = [obj for obj in IMPACTED_OBJECTS if obj not in selected_objects]
         GENERATED_SCRIPTS = [script for script in GENERATED_SCRIPTS if script not in selected_scripts]
         refresh_table()
+        def update_scroll_region(event):
+            canvas_pub.configure(scrollregion=canvas_pub.bbox("all"))
+
+        published_table_frame.bind("<Configure>", update_scroll_region)
+
 
     return frame
