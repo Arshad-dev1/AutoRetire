@@ -106,8 +106,36 @@ def create_code_review_tab(notebook, home_frame=None, shared_data=None):
     status_dropdown.grid(row=1, column=1, sticky="w", padx=5, pady=2)
 
     # --- Review Table Section ---
-    review_table_frame = ttk.Frame(review_section, style="TFrame")
-    review_table_frame.grid(row=2, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
+    review_table_container = ttk.Frame(review_section, style="TFrame")
+    review_table_container.grid(row=2, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
+    review_section.grid_rowconfigure(3, weight=1)
+    review_section.grid_columnconfigure(0, weight=1)
+
+    review_canvas = tk.Canvas(review_table_container,  highlightthickness=0, bg="#f5f5f5", bd=0)
+    review_canvas.pack(side="left", fill="both", expand=True, pady=5, padx=5, ipady=5, ipadx=5)
+    v_scrollbar = ttk.Scrollbar(review_table_container, orient="vertical", command=review_canvas.yview)
+    # h_scrollbar = ttk.Scrollbar(review_table_container, orient="horizontal", command=review_canvas.xview)
+    v_scrollbar.pack(side="right", fill="y")
+    # h_scrollbar.pack(side="bottom", fill="x")
+    # v_scrollbar.pack(side="right", fill="y")
+    # h_scrollbar.pack(side="bottom", fill="x")
+    # v_scroll = ttk.Scrollbar(review_table_container, orient=tk.VERTICAL, command=review_canvas.yview)
+    # v_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+    # h_scroll = ttk.Scrollbar(review_table_container, orient=tk.HORIZONTAL, command=review_canvas.xview)
+    # h_scroll.pack(side=tk.BOTTOM, fill=tk.X)
+    review_canvas.configure(yscrollcommand=v_scrollbar.set)
+    
+    review_table_frame = ttk.Frame(review_canvas, style="TFrame")
+    review_table_window = review_canvas.create_window((0, 0), window=review_table_frame, anchor="nw")
+
+    def on_frame_configure(event):
+        review_canvas.configure(scrollregion=review_canvas.bbox("all"))
+    review_table_frame.bind("<Configure>", on_frame_configure)
+
+    def on_canvas_configure(event):
+        # Make the frame width match the canvas width for 100% fill
+        review_canvas.itemconfig(review_table_window, width=event.width)
+    review_canvas.bind("<Configure>", on_canvas_configure)
 
     # Table headers
     ttk.Label(review_table_frame, text="S.No", font=("TkDefaultFont", 10, "bold"), borderwidth=0, relief="solid", width=5, style="TLabel").grid(row=0, column=0, sticky="nsew", padx=8, pady=6)
